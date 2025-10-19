@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gerador de Certificados - Power BI</title>
+    <title>Certificado Power BI - Gerador Online</title>
     <style>
         * {
             margin: 0;
@@ -28,7 +28,6 @@
             position: relative;
         }
         
-        /* Overlay escuro para melhor contraste */
         body::before {
             content: '';
             position: absolute;
@@ -131,14 +130,19 @@
             text-align: center;
             margin-top: 30px;
             position: relative;
+            width: 297mm; /* Largura exata do A4 em landscape */
+            height: 210mm; /* Altura exata do A4 em landscape */
+            margin-left: auto;
+            margin-right: auto;
         }
         
         .certificate-template {
             width: 100%;
-            max-width: 800px;
-            border-radius: 10px;
+            height: 100%;
+            object-fit: cover; /* Força a imagem a preencher o container */
+            border-radius: 0;
             box-shadow: 0 10px 30px rgba(0,0,0,0.3);
-            border: 1px solid #ddd;
+            display: block;
         }
         
         .certificate-overlay {
@@ -152,11 +156,11 @@
         
         .student-name {
             position: absolute;
-            top: 35%;
+            top: 40%;
             left: 0;
             width: 100%;
             text-align: center;
-            font-size: 2.0rem;
+            font-size: 2.2rem;
             font-weight: bold;
             color: #210230;
             text-shadow: 1px 1px 2px rgba(255,255,255,0.7);
@@ -211,8 +215,11 @@
         }
         
         @media (max-width: 850px) {
-            .certificate-template {
-                max-width: 100%;
+            .certificate-container {
+                width: 100%;
+                height: auto;
+                max-width: 100vw;
+                max-height: 70vh;
             }
             
             .student-name {
@@ -235,27 +242,23 @@
 <body>
     <div class="container">
         <div class="header">
-            <h1>Gerador de Certificados</h1>
-            <p>Preencha seu nome para gerar o certificado do curso de Power BI</p>
+            <h1>Gerador de Certificados - Power BI</h1>
+            <p>Digite seu nome para gerar e baixar seu certificado</p>
         </div>
         
         <div class="card">
             <div class="instructions">
-                <p><strong>Instruções:</strong> Preencha seu nome completo e clique em "Gerar Certificado" para baixar seu certificado em PDF.</p>
+                <p><strong>Como usar:</strong> Digite seu nome completo e clique no botão abaixo. Seu certificado será gerado automaticamente em PDF.</p>
             </div>
             
             <form id="certificateForm">
                 <div class="form-group">
                     <label for="name">Nome Completo</label>
-                    <input type="text" id="name" name="name" placeholder="Digite seu nome completo" required>
+                    <input type="text" id="name" name="name" placeholder="Seu nome completo" required>
                 </div>
                 
-                <button type="submit" id="generateBtn">Gerar Certificado</button>
+                <button type="submit" id="generateBtn">Gerar e Baixar Certificado</button>
             </form>
-            
-            <div class="image-notice">
-                <p><strong>Nota:</strong> Certificado gerado com template personalizado do curso de Power BI.</p>
-            </div>
             
             <div class="loading" id="loading">
                 <div class="spinner"></div>
@@ -263,7 +266,7 @@
             </div>
             
             <div class="success-message" id="successMessage">
-                <p>Certificado gerado com sucesso! Faça o download do arquivo PDF.</p>
+                <p>✅ Certificado gerado com sucesso! Verifique sua pasta de downloads.</p>
             </div>
         </div>
         
@@ -271,8 +274,8 @@
             <div class="certificate-overlay">
                 <div class="student-name" id="previewName">Nome do Aluno</div>
             </div>
-            <!-- IMAGEM DO CERTIFICADO - SUBSTITUA ESTE LINK PELA SUA IMAGEM HOSPEDADA -->
-            <img src="https://i.ibb.co/C5P6bKnc/certificado-template-png.png" alt="Certificado de Conclusão" class="certificate-template" id="certificateImage">
+            <!-- SUBSTITUA ESTE LINK PELA SUA IMAGEM DE CERTIFICADO -->
+            <img src="https://i.ibb.co/7t39hJxj/certificado-template-png.png" alt="Certificado de Conclusão" class="certificate-template" id="certificateImage">
         </div>
     </div>
 
@@ -280,74 +283,92 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     
     <script>
-        // Manipulação do formulário
         document.getElementById('certificateForm').addEventListener('submit', function(e) {
             e.preventDefault();
             
             const name = document.getElementById('name').value;
             
-            // Validação básica
             if (!name) {
-                alert('Por favor, preencha seu nome completo.');
+                alert('Por favor, digite seu nome completo.');
                 return;
             }
             
-            // Mostrar loading
             document.getElementById('loading').style.display = 'block';
             document.getElementById('generateBtn').disabled = true;
             
-            // Atualizar preview
             document.getElementById('previewName').textContent = name;
             document.getElementById('certificateContainer').style.display = 'block';
             
-            // Gerar PDF após um breve delay para garantir que a imagem seja renderizada
+            // Pequeno delay para garantir que a imagem seja renderizada
             setTimeout(() => {
-                // Gerar PDF
                 generatePDF(name);
                 
-                // Mostrar mensagem de sucesso
                 document.getElementById('loading').style.display = 'none';
                 document.getElementById('successMessage').style.display = 'block';
-                
-                // Limpar formulário
                 document.getElementById('certificateForm').reset();
                 document.getElementById('generateBtn').disabled = false;
                 
-                // Rolar para a mensagem de sucesso
                 document.getElementById('successMessage').scrollIntoView({ behavior: 'smooth' });
-            }, 1000);
+            }, 500);
         });
         
         function generatePDF(name) {
             const certificateElement = document.getElementById('certificateContainer');
             
+            // Remove sombras temporariamente para o PDF
+            const originalBoxShadow = certificateElement.style.boxShadow;
+            certificateElement.style.boxShadow = 'none';
+            
             html2canvas(certificateElement, {
                 scale: 2,
                 useCORS: true,
                 logging: false,
-                backgroundColor: null
+                backgroundColor: null,
+                width: certificateElement.scrollWidth,
+                height: certificateElement.scrollHeight,
+                windowWidth: certificateElement.scrollWidth,
+                windowHeight: certificateElement.scrollHeight,
+                onclone: function(clonedDoc) {
+                    const clonedElement = clonedDoc.getElementById('certificateContainer');
+                    if (clonedElement) {
+                        clonedElement.style.boxShadow = 'none';
+                    }
+                }
             }).then(canvas => {
-                const imgData = canvas.toDataURL('image/png');
+                // Restaura os estilos originais
+                certificateElement.style.boxShadow = originalBoxShadow;
+                
+                const imgData = canvas.toDataURL('image/png', 1.0);
                 
                 // Criar PDF
                 const { jsPDF } = window.jspdf;
                 const pdf = new jsPDF('landscape', 'mm', 'a4');
                 
-                const imgWidth = 297; // A4 width in mm
-                const imgHeight = (canvas.height * imgWidth) / canvas.width;
+                // Dimensões exatas da página A4
+                const pageWidth = pdf.internal.pageSize.getWidth();
+                const pageHeight = pdf.internal.pageSize.getHeight();
                 
-                pdf.addImage(imgData, 'PNG', 0, 0, imgWidth, imgHeight);
+                // Preenche toda a página sem manter proporção
+                pdf.addImage(imgData, 'PNG', 0, 0, pageWidth, pageHeight, '', 'FAST');
                 
                 // Salvar o PDF
-                pdf.save(`Certificado_PowerBI_${name.replace(/\s+/g, '_')}.pdf`);
+                pdf.save(`Certificado_Power_BI_${name.replace(/\s+/g, '_')}.pdf`);
+            }).catch(error => {
+                console.error('Erro ao gerar PDF:', error);
+                alert('Erro ao gerar o certificado. Tente novamente.');
+                
+                // Restaura os estilos em caso de erro
+                certificateElement.style.boxShadow = originalBoxShadow;
             });
         }
         
-        // Verificar se a imagem do certificado foi carregada corretamente
         document.getElementById('certificateImage').addEventListener('error', function() {
-            alert('Erro ao carregar o template do certificado. Usando fallback...');
-            // Fallback para uma imagem genérica de certificado
-            this.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iODAwIiBoZWlnaHQ9IjYwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KICA8cmVjdCB3aWR0aD0iODAwIiBoZWlnaHQ9IjYwMCIgZmlsbD0iI2Y4ZjlmYSIgc3Ryb2tlPSIjZGRkIiBzdHJva2Utd2lkdGg9IjIiLz4KICA8dGV4dCB4PSI0MDAiIHk9IjE1MCIgZm9udC1mYW1pbHk9IkFyaWFsLCBzYW5zLXNlcmlmIiBmb250LXNpemU9IjM2IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmaWxsPSIjMWUzYzcyIj5DRVJUSUZJQ0FETyBERSBDT05DTFVTQTwvdGV4dD4KICA8dGV4dCB4PSI0MDAiIHk9IjIwMCIgZm9udC1mYW1pbHk9IkFyaWFsLCBzYW5zLXNlcmlmIiBmb250LXNpemU9IjI0IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmaWxsPSIjNjY2Ij5DdXJzbyBkZSBQb3dlciBCSTwvdGV4dD4KICA8dGV4dCB4PSI0MDAiIHk9IjMwMCIgZm9udC1mYW1pbHk9IkFyaWFsLCBzYW5zLXNlcmlmIiBmb250LXNpemU9IjE4IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmaWxsPSIjMzMzIj5DZXJ0aWZpY2Ftb3MgcXVlPC90ZXh0PgogIDx0ZXh0IHg9IjQwMCIgeT0iNDAwIiBmb250LWZhbWlseT0iQXJpYWwsIHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMjgiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGZpbGw9IiMxZTNjNzIiPk5vbWUgZG8gQWx1bm88L3RleHQ+CiAgPHRleHQgeD0iNDAwIiB5PSI0NTAiIGZvbnQtZmFtaWx5PSJBcmlhbCwgc2Fucy1zZXJpZiIgZm9udC1zaXplPSIxOCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZmlsbD0iIzMzMyI+Y29uY2x1aXUgY29tIGV4aXRvIG8gY3Vyc28gZGUgUG93ZXIgQkkgY29tIDI0IGhvcmFzPC90ZXh0Pgo8L3N2Zz4K';
+            alert('Erro ao carregar o template. Verifique o link da imagem.');
+        });
+
+        // Garante que a imagem carregue com as dimensões corretas
+        document.getElementById('certificateImage').addEventListener('load', function() {
+            console.log('Imagem do certificado carregada com sucesso');
         });
     </script>
 </body>
