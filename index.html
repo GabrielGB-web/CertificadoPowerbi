@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gerador de Certificados - Power BI</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-image: url('https://i.ibb.co/NgYNmB98/pagina-web.png');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+            color: #333;
+            min-height: 100vh;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+        
+        /* Overlay escuro para melhor contraste */
+        body::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.4);
+            z-index: -1;
+        }
+        
+        .container {
+            width: 100%;
+            max-width: 1000px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            color: white;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+        }
+        
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+        
+        .header p {
+            font-size: 1.2rem;
+            opacity: 0.95;
+        }
+        
+        .card {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            padding: 30px;
+            margin-bottom: 30px;
+            backdrop-filter: blur(5px);
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #2a5298;
+        }
+        
+        input {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e1e5ee;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: all 0.3s;
+        }
+        
+        input:focus {
+            border-color: #2a5298;
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(42, 82, 152, 0.2);
+        }
+        
+        button {
+            background: #2a5298;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 14px 20px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            width: 100%;
+            transition: all 0.3s;
+        }
+        
+        button:hover {
+            background: #1e3c72;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        
+        button:disabled {
+            background: #a0a0a0;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        
+        .certificate-container {
+            display: none;
+            text-align: center;
+            margin-top: 30px;
+            position: relative;
+        }
+        
+        .certificate-template {
+            width: 100%;
+            max-width: 800px;
+            border-radius: 10px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            border: 1px solid #ddd;
+        }
+        
+        .certificate-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+        }
+        
+        .student-name {
+            position: absolute;
+            top: 35%;
+            left: -19%;
+            width: 110%;
+            text-align: center;
+            font-size: 2.0rem;
+            font-weight: bold;
+            color: #210230;
+            text-shadow: 1px 1px 2px rgba(255,255,255,0.7);
+        }
+        
+        .success-message {
+            display: none;
+            background: #d4edda;
+            color: #155724;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 20px;
+            text-align: center;
+        }
+        
+        .loading {
+            display: none;
+            text-align: center;
+            margin-top: 20px;
+        }
+        
+        .spinner {
+            border: 5px solid #f3f3f3;
+            border-top: 5px solid #2a5298;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 15px;
+        }
+        
+        .instructions {
+            background: #e9f7fe;
+            border-left: 4px solid #2a5298;
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 0 8px 8px 0;
+        }
+        
+        .image-notice {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 15px;
+            margin-top: 15px;
+            border-radius: 0 8px 8px 0;
+            font-size: 0.9rem;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        @media (max-width: 850px) {
+            .certificate-template {
+                max-width: 100%;
+            }
+            
+            .student-name {
+                font-size: 1.8rem;
+            }
+        }
+        
+        @media (max-width: 600px) {
+            .student-name {
+                font-size: 1.5rem;
+            }
+            
+            body {
+                padding: 10px;
+                background-attachment: scroll;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Gerador de Certificados</h1>
+            <p>Preencha seu nome para gerar o certificado do curso de Power BI</p>
+        </div>
+        
+        <div class="card">
+            <div class="instructions">
+                <p><strong>Instruções:</strong> Preencha seu nome completo e clique em "Gerar Certificado" para baixar seu certificado em PDF.</p>
+            </div>
+            
+            <form id="certificateForm">
+                <div class="form-group">
+                    <label for="name">Nome Completo</label>
+                    <input type="text" id="name" name="name" placeholder="Digite seu nome completo" required>
+                </div>
+                
+                <button type="submit" id="generateBtn">Gerar Certificado</button>
+            </form>
+            
+            <div class="image-notice">
+                <p><strong>Nota:</strong> Certificado gerado com template personalizado do curso de Power BI.</p>
+            </div>
+            
+            <div class="loading" id="loading">
+                <div class="spinner"></div>
+                <p>Gerando seu certificado...</p>
+            </div>
+            
+            <div class="success-message" id="successMessage">
+                <p>Certificado gerado com sucesso! Faça o download do arquivo PDF.</p>
+            </div>
+        </div>
+        
+        <div class="certificate-container" id="certificateContainer">
+            <div class="certificate-overlay">
+                <div class="student-name" id="previewName">Nome do Aluno</div>
+            </div>
+            <!-- IMAGEM DO CERTIFICADO - SUBSTITUA ESTE LINK PELA SUA IMAGEM HOSPEDADA -->
+            <img src="https://i.ibb.co/C5P6bKnc/certificado-template-png.png" alt="Certificado de Conclusão" class="certificate-template" id="certificateImage">
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    
+    <script>
+        // Manipulação do formulário
+        document.getElementById('certificateForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const name = document.getElementById('name').value;
+            
+            // Validação básica
+            if (!name) {
+                alert('Por favor, preencha seu nome completo.');
+                return;
+            }
+            
+            // Mostrar loading
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('generateBtn').disabled = true;
+            
+            // Atualizar preview
+            document.getElementById('previewName').textContent = name;
+            document.getElementById('certificateContainer').style.display = 'block';
+            
+            // Gerar PDF após um breve delay para garantir que a imagem seja renderizada
+            setTimeout(() => {
+                // Gerar PDF
+                generatePDF(name);
+                
+                // Mostrar mensagem de sucesso
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('successMessage').style.display = 'block';
+                
+                // Limpar formulário
+                document.getElementById('certificateForm').reset();
+                document.getElementById('generateBtn').disabled = false;
+                
+                // Rolar para a mensagem de sucesso
+                document.getElementById('successMessage').scrollIntoView({ behavior: 'smooth' });
+            }, 1000);
+        });
+        
+        function generatePDF(name) {
+            const certificateElement = document.getElementById('certificateContainer');
+            
+            html2canvas(certificateElement, {
+                scale: 2,
+                useCORS: true,
+                logging: false,
+                backgroundColor: null
+            }).then(canvas => {
+                const imgData = canvas.toDataURL('image/png');
+                
+                // Criar PDF
+                const { jsPDF } = window.jspdf;
+                const pdf = new jsPDF('landscape', 'mm', 'a4');
+                
+                const imgWidth = 297; // A4 width in mm
+                const imgHeight = (canvas.height * imgWidth) / canvas.width;
+                
+                pdf.addImage(imgData, 'PNG', 0, 0, imgWidth, imgHeight);
+                
+                // Salvar o PDF
+                pdf.save(`Certificado_PowerBI_${name.replace(/\s+/g, '_')}.pdf`);
+            });
+        }
+        
+        // Verificar se a imagem do certificado foi carregada corretamente
+        document.getElementById('certificateImage').addEventListener('error', function() {
+            alert('Erro ao carregar o template do certificado. Usando fallback...');
+            // Fallback para uma imagem genérica de certificado
+            this.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iODAwIiBoZWlnaHQ9IjYwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KICA8cmVjdCB3aWR0aD0iODAwIiBoZWlnaHQ9IjYwMCIgZmlsbD0iI2Y4ZjlmYSIgc3Ryb2tlPSIjZGRkIiBzdHJva2Utd2lkdGg9IjIiLz4KICA8dGV4dCB4PSI0MDAiIHk9IjE1MCIgZm9udC1mYW1pbHk9IkFyaWFsLCBzYW5zLXNlcmlmIiBmb250LXNpemU9IjM2IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmaWxsPSIjMWUzYzcyIj5DRVJUSUZJQ0FETyBERSBDT05DTFVTQTwvdGV4dD4KICA8dGV4dCB4PSI0MDAiIHk9IjIwMCIgZm9udC1mYW1pbHk9IkFyaWFsLCBzYW5zLXNlcmlmIiBmb250LXNpemU9IjI0IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmaWxsPSIjNjY2Ij5DdXJzbyBkZSBQb3dlciBCSTwvdGV4dD4KICA8dGV4dCB4PSI0MDAiIHk9IjMwMCIgZm9udC1mYW1pbHk9IkFyaWFsLCBzYW5zLXNlcmlmIiBmb250LXNpemU9IjE4IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmaWxsPSIjMzMzIj5DZXJ0aWZpY2Ftb3MgcXVlPC90ZXh0PgogIDx0ZXh0IHg9IjQwMCIgeT0iNDAwIiBmb250LWZhbWlseT0iQXJpYWwsIHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMjgiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGZpbGw9IiMxZTNjNzIiPk5vbWUgZG8gQWx1bm88L3RleHQ+CiAgPHRleHQgeD0iNDAwIiB5PSI0NTAiIGZvbnQtZmFtaWx5PSJBcmlhbCwgc2Fucy1zZXJpZiIgZm9udC1zaXplPSIxOCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZmlsbD0iIzMzMyI+Y29uY2x1aXUgY29tIGV4aXRvIG8gY3Vyc28gZGUgUG93ZXIgQkkgY29tIDI0IGhvcmFzPC90ZXh0Pgo8L3N2Zz4K';
+        });
+    </script>
+</body>
+</html>
